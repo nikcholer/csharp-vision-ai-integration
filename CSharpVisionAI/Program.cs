@@ -25,6 +25,8 @@ namespace CSharpVisionAI
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private readonly string _endpoint;
+        private readonly string _model;
+        private readonly bool _useMockResponse;
 
         public VisionModelClient(HttpClient httpClient)
         {
@@ -33,8 +35,13 @@ namespace CSharpVisionAI
             _apiKey = Environment.GetEnvironmentVariable("AI_VISION_API_KEY")
                       ?? throw new InvalidOperationException("Missing environment variable: AI_VISION_API_KEY");
 
-            _endpoint = Environment.GetEnvironmentVariable("AI_VISION_ENDPOINT")
-                      ?? "https://api.example-ai-provider.com/v1/vision/analyze";
+            var configuredEndpoint = Environment.GetEnvironmentVariable("AI_VISION_ENDPOINT");
+            _endpoint = string.IsNullOrWhiteSpace(configuredEndpoint)
+                ? "https://api.example-ai-provider.com/v1/vision/analyze"
+                : configuredEndpoint;
+            _model = Environment.GetEnvironmentVariable("AI_VISION_MODEL") ?? "vision-model-v1";
+            _useMockResponse = string.IsNullOrWhiteSpace(configuredEndpoint)
+                || string.Equals(_apiKey, "dummy_key_for_demo_build", StringComparison.Ordinal);
         }
 
         public async Task<string> AnalyzeImageAsync(string imagePath, string prompt)
@@ -49,7 +56,7 @@ namespace CSharpVisionAI
 
             var requestBody = new
             {
-                model = "vision-model-v1",
+                model = _model,
                 messages = new[]
                 {
                     new
@@ -64,20 +71,21 @@ namespace CSharpVisionAI
                 }
             };
 
+            if (_useMockResponse)
+            {
+                await Task.Delay(500);
+                return "SUCCESS: Image analyzed via secure channel. (Mocked response for demo purposes)";
+            }
+
             var request = new HttpRequestMessage(HttpMethod.Post, _endpoint)
             {
                 Content = new StringContent(JsonSerializer.Serialize(requestBody), System.Text.Encoding.UTF8, "application/json")
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
-            // In a real scenario, this would execute the HTTP call:
-            // var response = await _httpClient.SendAsync(request);
-            // response.EnsureSuccessStatusCode();
-            // return await response.Content.ReadAsStringAsync();
-
-            // Mocking response for harness demonstration.
-            await Task.Delay(500);
-            return "SUCCESS: Image analyzed via secure channel. (Mocked response for demo purposes)";
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
         }
     }
 

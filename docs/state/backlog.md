@@ -7,7 +7,7 @@
 - [x] **Frontend Integration:** Scaffold `wwwroot/app.js`. Wire up event listeners to capture the image and prompt, construct the `FormData`, and make the asynchronous `fetch` call to `/api/vision/analyze`. Integrate professional loading indicators and gracefully handle error states.
 
 ## Medium Priority Queue
-- [ ] **Real API Swap:** Transition the backend `IVisionAgent` implementation from the mocked local delay to actually calling out to a Live Vision AI endpoint using the injected API keys.
+- [x] **Real API Swap:** Transition the backend `IVisionAgent` implementation from the mocked local delay to actually calling out to a Live Vision AI endpoint using the injected API keys.
 - [ ] **Response Parsing:** Gracefully parse complex markdown/object responses from the ML service in the frontend.
 
 ## Icebox (Human-Controlled: Agent Read-Only)

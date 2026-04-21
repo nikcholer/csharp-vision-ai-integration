@@ -1,9 +1,9 @@
 # Handover Document
 
-**Last Agent Exited At:** 2026-04-21 12:56:22 +01:00
+**Last Agent Exited At:** 2026-04-21 13:01:38 +01:00
 
 ## Primary Immediate Next Step
-- Continue with the next Medium Priority Queue item: transition `IVisionAgent` from the mocked local delay toward a real Live Vision AI endpoint using injected API keys.
+- Continue with the remaining Medium Priority Queue item: gracefully parse complex markdown/object responses from the ML service in the frontend.
 
 ## Active Context
 - **Current Epic/Goal:** Transform the standalone C# vision demo into an ASP.NET Core Minimal API with a vanilla frontend.
@@ -12,11 +12,10 @@
 
 ## Verification
 - `dotnet run --project CSharpVisionAI.Tests\CSharpVisionAI.Tests.csproj` passed.
-- `dotnet build CSharpVisionAI\CSharpVisionAI.csproj` passed.
-- The test runner now validates that `wwwroot/index.html`, `wwwroot/styles.css`, and `wwwroot/app.js` exist, that the script is served by the live Kestrel app, and that the frontend includes FormData/fetch wiring for `/api/vision/analyze`.
+- `dotnet build CSharpVisionAI\CSharpVisionAI.csproj` passed with 0 warnings and 0 errors.
 
 ## Relevant Architectural Context
-- `VisionApp.Create(args)` now resolves the content root to the `CSharpVisionAI` web project so static assets serve correctly when launched from either the repository root/test harness or the web project directory.
-- `wwwroot/index.html` now loads `app.js` and exposes stable IDs for form, file, prompt, status, and result elements.
-- `wwwroot/app.js` owns file selection, drag-and-drop, prompt metadata, multipart API submission, loading indicators, validation messages, endpoint errors, and successful analysis rendering.
-- `wwwroot/styles.css` defines the corporate-sober visual system and now includes loading, success, error, dragging, and selected-file states.
+- `VisionModelClient` now performs a real outbound POST when both `AI_VISION_ENDPOINT` and a non-demo `AI_VISION_API_KEY` are configured.
+- The outbound request includes bearer authentication, a configurable model from `AI_VISION_MODEL` with `vision-model-v1` as the default, the prompt text, and the uploaded image encoded as a data URL.
+- If no live endpoint is configured, the application keeps returning the existing mocked success string so local demo and smoke-test flows continue to work without secrets.
+- The next task is frontend-facing: improve `wwwroot/app.js` response rendering so raw strings, provider JSON objects, and markdown-like analysis content display cleanly.

@@ -7,6 +7,7 @@ var tests = new EndpointTests();
 await tests.ValidMultipartRequestDelegatesToVisionAgent();
 await tests.MissingImageReturnsBadRequest();
 await tests.BlankPromptReturnsBadRequest();
+await tests.VisionModelClientPostsToConfiguredEndpoint();
 await tests.LiveServerAcceptsMultipartRequest();
 await tests.LiveServerServesStaticFrontend();
 tests.StaticFrontendFoundationIncludesUploadWorkflow();
@@ -59,6 +60,48 @@ internal sealed class EndpointTests
         AssertEqual(StatusCodes.Status400BadRequest, result.StatusCode, "Expected a bad request for a blank prompt.");
         AssertEqual(0, agent.CallCount, "Expected the vision agent not to be called.");
         AssertContains("prompt", result.Json, "Expected the validation response to mention the prompt field.");
+    }
+
+    public async Task VisionModelClientPostsToConfiguredEndpoint()
+    {
+        var previousApiKey = Environment.GetEnvironmentVariable("AI_VISION_API_KEY");
+        var previousEndpoint = Environment.GetEnvironmentVariable("AI_VISION_ENDPOINT");
+        var previousModel = Environment.GetEnvironmentVariable("AI_VISION_MODEL");
+        var imagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
+
+        try
+        {
+            await File.WriteAllBytesAsync(imagePath, [0x10, 0x20, 0x30]);
+            Environment.SetEnvironmentVariable("AI_VISION_API_KEY", "test-live-key");
+            Environment.SetEnvironmentVariable("AI_VISION_ENDPOINT", "https://vision.example.test/v1/analyze");
+            Environment.SetEnvironmentVariable("AI_VISION_MODEL", "test-vision-model");
+
+            var handler = new CapturingHttpHandler("""{"analysis":"live response"}""");
+            var client = new VisionModelClient(new HttpClient(handler));
+
+            var analysis = await client.AnalyzeImageAsync(imagePath, "Identify the object");
+
+            AssertEqual("""{"analysis":"live response"}""", analysis, "Expected the raw provider response to be returned.");
+            AssertEqual(1, handler.CallCount, "Expected one outbound HTTP call.");
+            AssertEqual(HttpMethod.Post, handler.Method, "Expected the provider request to use POST.");
+            AssertEqual("https://vision.example.test/v1/analyze", handler.RequestUri?.ToString(), "Expected the configured endpoint to be used.");
+            AssertEqual("Bearer", handler.AuthorizationScheme, "Expected bearer token auth.");
+            AssertEqual("test-live-key", handler.AuthorizationParameter, "Expected the configured API key to be sent.");
+            AssertContains("test-vision-model", handler.Body ?? string.Empty, "Expected the configured model in the JSON body.");
+            AssertContains("Identify the object", handler.Body ?? string.Empty, "Expected the prompt in the JSON body.");
+            AssertContains("ECAw", handler.Body ?? string.Empty, "Expected the uploaded image bytes as base64 in the JSON body.");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("AI_VISION_API_KEY", previousApiKey);
+            Environment.SetEnvironmentVariable("AI_VISION_ENDPOINT", previousEndpoint);
+            Environment.SetEnvironmentVariable("AI_VISION_MODEL", previousModel);
+
+            if (File.Exists(imagePath))
+            {
+                File.Delete(imagePath);
+            }
+        }
     }
 
     public async Task LiveServerAcceptsMultipartRequest()
@@ -219,5 +262,30 @@ internal sealed class RecordingVisionAgent(string response) : IVisionAgent
         ImageFileExistedWhenCalled = File.Exists(imagePath);
         ImageLengthWhenCalled = ImageFileExistedWhenCalled ? new FileInfo(imagePath).Length : 0;
         return Task.FromResult(response);
+    }
+}
+
+internal sealed class CapturingHttpHandler(string responseBody) : HttpMessageHandler
+{
+    public int CallCount { get; private set; }
+    public HttpMethod? Method { get; private set; }
+    public Uri? RequestUri { get; private set; }
+    public string? AuthorizationScheme { get; private set; }
+    public string? AuthorizationParameter { get; private set; }
+    public string? Body { get; private set; }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        CallCount++;
+        Method = request.Method;
+        RequestUri = request.RequestUri;
+        AuthorizationScheme = request.Headers.Authorization?.Scheme;
+        AuthorizationParameter = request.Headers.Authorization?.Parameter;
+        Body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
+
+        return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+        {
+            Content = new StringContent(responseBody, Encoding.UTF8, "application/json")
+        };
     }
 }
