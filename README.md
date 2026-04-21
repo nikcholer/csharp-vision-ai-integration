@@ -13,17 +13,28 @@ This repository demonstrates the secure integration of a multimodal AI vision mo
 ### Prerequisites
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download)
 
-### Run the Demo
+### Run the Web Demo
 
 ```bash
-# Optional: Set your real AI Vision API Key. 
-# If omitted, the demo will use a mock response to ensure it executes seamlessly without configuration.
+# Optional: Set your real AI Vision API Key
+# If omitted, the demo will use a mock response to ensure it executes seamlessly.
 export AI_VISION_API_KEY="your-secure-key"
 
 # Navigate into the project
 cd CSharpVisionAI
 
-# Run the console application
+# Start the web server
+dotnet run
+```
+
+Once started, open your browser and navigate to **`http://localhost:5000`** (or the URL displayed in your terminal). You can then drag-and-drop an image and submit a prompt to see the secure vision analysis in action.
+
+### Running Tests
+
+The solution includes a dedicated test harness to verify the API boundary and project logic:
+
+```bash
+cd CSharpVisionAI.Tests
 dotnet run
 ```
 
