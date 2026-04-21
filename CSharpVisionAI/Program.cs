@@ -5,7 +5,9 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CSharpVisionAI
 {
@@ -79,9 +81,92 @@ namespace CSharpVisionAI
         }
     }
 
-    internal class Program
+    public sealed record VisionApiResult(int StatusCode, object Payload)
     {
-        private static async Task Main(string[] args)
+        public string Json => JsonSerializer.Serialize(Payload);
+
+        public IResult ToHttpResult()
+        {
+            return Results.Json(Payload, statusCode: StatusCode);
+        }
+    }
+
+    public static class VisionApi
+    {
+        public static async Task<VisionApiResult> HandleAnalyzeAsync(
+            HttpRequest request,
+            IVisionAgent visionAgent,
+            ILogger logger)
+        {
+            if (!request.HasFormContentType)
+            {
+                return BadRequest("form", "Expected a multipart form request.");
+            }
+
+            var form = await request.ReadFormAsync();
+            var image = form.Files.GetFile("image");
+            var prompt = form["prompt"].ToString();
+
+            if (image is null || image.Length == 0)
+            {
+                return BadRequest("image", "An uploaded image is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                return BadRequest("prompt", "A prompt is required.");
+            }
+
+            var extension = Path.GetExtension(image.FileName);
+            var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}{extension}");
+
+            try
+            {
+                await using (var output = File.Create(tempPath))
+                {
+                    await image.CopyToAsync(output);
+                }
+
+                logger.LogInformation(
+                    "Analyzing uploaded image {FileName} ({Length} bytes).",
+                    image.FileName,
+                    image.Length);
+
+                var analysis = await visionAgent.AnalyzeImageAsync(tempPath, prompt.Trim());
+
+                return new VisionApiResult(
+                    StatusCodes.Status200OK,
+                    new
+                    {
+                        analysis,
+                        fileName = image.FileName,
+                        prompt = prompt.Trim()
+                    });
+            }
+            finally
+            {
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
+        }
+
+        private static VisionApiResult BadRequest(string field, string message)
+        {
+            return new VisionApiResult(
+                StatusCodes.Status400BadRequest,
+                new
+                {
+                    error = message,
+                    field
+                });
+        }
+    }
+
+    public static class VisionApp
+    {
+        public static WebApplication Create(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -100,6 +185,26 @@ namespace CSharpVisionAI
             app.UseStaticFiles();
 
             app.MapGet("/health", () => Results.Ok(new { status = "ready" }));
+            app.MapPost(
+                "/api/vision/analyze",
+                async (HttpRequest request, IVisionAgent visionAgent, ILoggerFactory loggerFactory) =>
+                {
+                    var response = await VisionApi.HandleAnalyzeAsync(
+                        request,
+                        visionAgent,
+                        loggerFactory.CreateLogger("VisionApi"));
+                    return response.ToHttpResult();
+                });
+
+            return app;
+        }
+    }
+
+    internal class Program
+    {
+        private static async Task Main(string[] args)
+        {
+            var app = VisionApp.Create(args);
 
             Console.WriteLine("--- Secure AI Vision Web Application initialized ---");
             await app.RunAsync();
