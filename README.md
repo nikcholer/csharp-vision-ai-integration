@@ -2,6 +2,8 @@
 
 This repository demonstrates the secure integration of a multimodal AI vision model (e.g., Gemini 1.5 Pro, GPT-4o) into a C# application. It is specifically designed with architectural best practices that allow it to be easily securely plugged into an autonomous coding agent harness (like `loop-design-build`) or standard CI/CD pipeline.
 
+![Application Dashboard Screenshot](screenshot.png)
+
 ## 🎯 Key Objectives
 
 1. **Secure by Default:** Avoids hardcoding any API strings or secrets. Credentials are systematically extracted from environment variables (mapping cleanly to CI/CD Vaults/Secrets).
