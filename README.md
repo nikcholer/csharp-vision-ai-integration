@@ -8,26 +8,50 @@ This repository demonstrates the secure integration of a multimodal AI vision mo
 2. **Dependency Injection Ready:** The `IVisionAgent` interface and `HttpClient` usage are structured to directly plug into standard .NET Core DI containers.
 3. **Agentic Harness Friendly:** The code architecture is decoupled, allowing an orchestration agent to abstract the AI interactions and run unit tests deterministically.
 
+## ⚙️ Configuration
+
+The application uses the standard .NET configuration provider, which loads settings from multiple sources in the following priority (last one wins):
+
+1. **`appsettings.json`**: Base settings for the endpoint and model.
+2. **User Secrets**: Best for local development API keys.
+3. **Environment Variables**: Best for CI/CD and production.
+
+### Available Settings
+
+| Key | Description | Default / Example |
+| :--- | :--- | :--- |
+| `AI_VISION_API_KEY` | Your AI provider API Key. | `(Required for real inference)` |
+| `AI_VISION_ENDPOINT` | The REST API endpoint for the vision model. | `https://api.example.com/v1/...` |
+| `AI_VISION_MODEL` | The specific model string to use. | `vision-model-v1` |
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download)
 
-### Run the Web Demo
+### Step 1: Configure your API Key (Local Development)
+
+The easiest way to set your API key locally without touching files is using **User Secrets**:
 
 ```bash
-# Optional: Set your real AI Vision API Key
-# If omitted, the demo will use a mock response to ensure it executes seamlessly.
-export AI_VISION_API_KEY="your-secure-key"
-
-# Navigate into the project
 cd CSharpVisionAI
+dotnet user-secrets init
+dotnet user-secrets set "AI_VISION_API_KEY" "your-actual-api-key"
+```
 
+### Step 2: Run the Web Demo
+
+```bash
 # Start the web server
 dotnet run
 ```
 
-Once started, open your browser and navigate to **`http://localhost:5000`** (or the URL displayed in your terminal). You can then drag-and-drop an image and submit a prompt to see the secure vision analysis in action.
+> [!NOTE]
+> If `AI_VISION_API_KEY` is omitted, the demo will automatically inject a dummy key and use a **mock response** to ensure the UI remains testable without a real provider.
+
+Once started, open your browser and navigate to **`http://localhost:5000`**. You can drag-and-drop an image and submit a prompt to see the secure vision analysis in action.
 
 ### Running Tests
 

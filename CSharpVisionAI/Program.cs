@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace CSharpVisionAI
 {
@@ -28,19 +29,19 @@ namespace CSharpVisionAI
         private readonly string _model;
         private readonly bool _useMockResponse;
 
-        public VisionModelClient(HttpClient httpClient)
+        public VisionModelClient(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
-            // Securely load API Key from Environment Variable / Key Vault rather than hardcoding.
-            _apiKey = Environment.GetEnvironmentVariable("AI_VISION_API_KEY")
-                      ?? throw new InvalidOperationException("Missing environment variable: AI_VISION_API_KEY");
+            // Standard .NET Configuration pattern: checks appsettings, user secrets, and env vars automatically.
+            _apiKey = configuration["AI_VISION_API_KEY"]
+                      ?? throw new InvalidOperationException("Missing configuration: AI_VISION_API_KEY");
 
-            var configuredEndpoint = Environment.GetEnvironmentVariable("AI_VISION_ENDPOINT");
-            _endpoint = string.IsNullOrWhiteSpace(configuredEndpoint)
-                ? "https://api.example-ai-provider.com/v1/vision/analyze"
-                : configuredEndpoint;
-            _model = Environment.GetEnvironmentVariable("AI_VISION_MODEL") ?? "vision-model-v1";
-            _useMockResponse = string.IsNullOrWhiteSpace(configuredEndpoint)
+            _endpoint = configuration["AI_VISION_ENDPOINT"]
+                ?? "https://api.example-ai-provider.com/v1/vision/analyze";
+
+            _model = configuration["AI_VISION_MODEL"] ?? "vision-model-v1";
+
+            _useMockResponse = _endpoint.Contains("example-ai-provider.com")
                 || string.Equals(_apiKey, "dummy_key_for_demo_build", StringComparison.Ordinal);
         }
 
@@ -182,11 +183,11 @@ namespace CSharpVisionAI
                 ContentRootPath = ResolveContentRoot()
             });
 
-            // Keep the demo runnable without local secret setup while preserving environment-based credentials.
-            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AI_VISION_API_KEY")))
+            // Keep the demo runnable without local secret setup while preserving configuration-based credentials.
+            if (string.IsNullOrEmpty(builder.Configuration["AI_VISION_API_KEY"]))
             {
-                Console.WriteLine("[WARN] AI_VISION_API_KEY not found. Injecting dummy key for demonstration server...");
-                Environment.SetEnvironmentVariable("AI_VISION_API_KEY", "dummy_key_for_demo_build");
+                Console.WriteLine("[WARN] AI_VISION_API_KEY not found in configuration. Injecting dummy key for demonstration...");
+                builder.Configuration["AI_VISION_API_KEY"] = "dummy_key_for_demo_build";
             }
 
             builder.Services.AddHttpClient<IVisionAgent, VisionModelClient>();
