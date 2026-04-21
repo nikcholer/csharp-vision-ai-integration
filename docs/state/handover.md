@@ -1,19 +1,19 @@
 # Handover Document
 
-**Last Agent Exited At:** Initialization
+**Last Agent Exited At:** 2026-04-21 infrastructure setup run
 
 ## Primary Immediate Next Step
-- Review `.agents/skills/agent-loop.md`.
-- Read `docs/planning.md` and `docs/state/backlog.md`.
-- Complete the next highest-priority active backlog item without pulling work from the Icebox.
+- Continue with the next High Priority Queue item: implement `POST /api/vision/analyze` as a Minimal API multipart endpoint that delegates to `IVisionAgent`.
 
 ## Active Context
-- **Current Epic/Goal:** Initial project analysis and backlog generation
-- **Last File Modified:** None
-- **Current Blockers:** None
+- **Current Epic/Goal:** Transform the standalone C# vision demo into an ASP.NET Core Minimal API with a vanilla frontend.
+- **Last File Modified:** `docs/state/handover.md`
+- **Current Blockers:** None.
 
-## Token Usage
-- Optional: record approximate token usage for the run when that information is available.
+## Verification
+- `dotnet build` passed from `CSharpVisionAI`.
+- Smoke test booted the web host on `http://127.0.0.1:5087` and `GET /health` returned `200` with `{"status":"ready"}`.
+- The smoke test logged that `wwwroot` is missing; this is expected until the Frontend Foundation task creates static assets.
 
 ## Relevant Architectural Context
-- Record only the project-specific constraints or decisions the next run must keep in working memory.
+- `Program.cs` now uses `WebApplication.CreateBuilder`, registers `IVisionAgent` via `AddHttpClient<IVisionAgent, VisionModelClient>()`, enables `UseDefaultFiles()` and `UseStaticFiles()`, and keeps the demo fallback for `AI_VISION_API_KEY`.

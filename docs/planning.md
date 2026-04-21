@@ -2,40 +2,54 @@
 
 ## Domain Overview
 
-Describe the product or system being built, who it serves, and the main workflow the agent must support.
+This project (`CSharpVisionAI`) demonstrates the secure integration of a multimodal AI vision model (like Gemini 1.5 Pro) into a modern C# Web Application. It is designed to be showcased to technical recruiters, emphasizing clean architectural patterns, dependency injection, and secure credential handling. 
+
+The immediate goal is to transform the standalone Console loop into a lightweight ASP.NET Core Minimal API backed by a polished, vibrant Vanilla JavaScript and CSS frontend.
 
 ## Data Sources / Requirements
 
-Paste or summarize the raw schema, API contracts, sample payloads, business rules, and any must-have behaviours that define the scope.
+- **Backend API:** An endpoint `POST /api/vision/analyze` must accept `multipart/form-data` containing an uploaded image and a text prompt.
+- **Frontend Interaction:**
+  - Drag-and-drop or select file input for the image.
+  - Text input field for the prompt.
+  - Submit button to push formData to the server.
+- **Security Constraint:** API Keys to external AI models are NOT to be hardcoded, but pulled from environment variables (e.g., `AI_VISION_API_KEY`). At this phase, the system should operate flawlessly even if the AI backend is using the local mocked delay simulation.
 
 ## Success Criteria
 
-**Define what "Done" looks like for the next set of runs.**
-- What UI elements must be visible?
-- What API endpoints must return specific data?
-- What side-effects (database, filesystem) must be verified?
+**The run is considered "Done" when:**
+- The application boots via `dotnet run` into an ASP.NET Core dev webserver serving static files.
+- The UI page is accessible at `http://localhost:<port>/index.html`.
+- The user can upload an image and prompt, which are successfully passed to the Minimal API.
+- The Minimal API delegates to `IVisionAgent` seamlessly.
+- The frontend receives the JSON response and displays the "simulated/mocked AI output" or the real AI output on the dashboard gracefully without reloading the page.
+- The UI design feels extremely premium (vibrant gradients, hover states, modern typography, glassmorphism hints).
 
 ## Manual Verification Steps
 
-**List the exact steps the human operator should take to verify the agent's work.**
-1. Open `http://localhost:3000`.
-2. Perform action X.
-3. Verify outcome Y.
+1. Run `dotnet run` in the `CSharpVisionAI` folder.
+2. Open the resulting `http://localhost:<port>` url.
+3. Observe the premium aesthetic of the design.
+4. Upload any sample image and provide a prompt.
+5. Click Submit and verify the C# backend logs the incoming request, triggers `VisionModelClient`, and pushes the response back to the front-end dashboard visually.
 
 ## Technical Constraints
 
-List required environments, deployment constraints, coding standards beyond the default harness, performance limits, and any forbidden approaches.
+- **Backend Framework:** C# ASP.NET Core Minimal API (`Microsoft.NET.Sdk.Web`). No heavy MVC or Razor Pages.
+- **Frontend Framework:** STRICTLY Vanilla HTML, CSS, and JS (`wwwroot/index.html`, `styles.css`, `app.js`). No React, Angular, Tailwind, or Vue.
+- **Agent Flow Compatibility:** Ensure the `Program.cs` and interface dependencies (`IVisionAgent`) remain decoupled so that an orchestrating harness can execute tests seamlessly.
 
 ## Preferred Stack
 
-Specify the preferred languages, frameworks, libraries, databases, and tooling. If something is optional, say so explicitly.
+- Language: C# .NET 8.0, HTML5, Vanilla CSS3, Vanilla ES6 JavaScript.
+- Architecture: Minimal API backend + Static files. 
 
 ## Skills
 
-List optional harness skills to activate using one bullet per skill name from `~/.agents/skills/`.
-Leave this section empty if no extra skills are needed.
-Example format: `- frontend-design`
+- `frontend-design` (For generating the vibrant, premium responsive UI layout).
 
 ## Out of Scope
 
-List features, integrations, migrations, or polish work that the agent should avoid during this run.
+- Integrating database persistence.
+- User authentication/login screens.
+- Complex SPA routing (keep it a single index page).
