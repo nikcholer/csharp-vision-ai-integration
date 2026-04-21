@@ -30,6 +30,205 @@ function formatBytes(bytes) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function tryParseJson(value) {
+    if (typeof value !== "string") {
+        return value;
+    }
+
+    const trimmed = value.trim();
+    const fencedJson = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+    const candidate = fencedJson ? fencedJson[1].trim() : trimmed;
+
+    if (!candidate.startsWith("{") && !candidate.startsWith("[")) {
+        return value;
+    }
+
+    try {
+        return JSON.parse(candidate);
+    } catch {
+        return value;
+    }
+}
+
+function extractProviderText(value) {
+    const parsed = tryParseJson(value);
+
+    if (typeof parsed === "string") {
+        return parsed;
+    }
+
+    if (Array.isArray(parsed)) {
+        return parsed.map(extractProviderText).filter(Boolean).join("\n");
+    }
+
+    if (!parsed || typeof parsed !== "object") {
+        return String(parsed ?? "");
+    }
+
+    if (Array.isArray(parsed.choices)) {
+        return parsed.choices
+            .map((choice) => extractProviderText(choice.message?.content ?? choice.text ?? choice.delta?.content))
+            .filter(Boolean)
+            .join("\n");
+    }
+
+    if (Array.isArray(parsed.candidates)) {
+        return parsed.candidates
+            .map((candidate) => extractProviderText(candidate.content?.parts ?? candidate.output ?? candidate.text))
+            .filter(Boolean)
+            .join("\n");
+    }
+
+    if (Array.isArray(parsed.parts)) {
+        return parsed.parts.map((part) => extractProviderText(part.text ?? part)).filter(Boolean).join("\n");
+    }
+
+    if (Array.isArray(parsed.content)) {
+        return parsed.content.map((part) => extractProviderText(part.text ?? part)).filter(Boolean).join("\n");
+    }
+
+    const directText = parsed.analysis ?? parsed.result ?? parsed.response ?? parsed.output ?? parsed.message ?? parsed.text ?? parsed.description;
+    if (directText !== undefined) {
+        return extractProviderText(directText);
+    }
+
+    return JSON.stringify(parsed, null, 2);
+}
+
+function titleFromKey(key) {
+    return key
+        .replace(/[_-]+/g, " ")
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function parseMarkdownSections(text) {
+    const sections = [];
+    let current = { title: "Summary", lines: [], items: [] };
+
+    text.split(/\r?\n/).forEach((line) => {
+        const trimmed = line.trim();
+        const heading = trimmed.match(/^(#{1,4})\s+(.+)$/);
+        const bullet = trimmed.match(/^[-*]\s+(.+)$/);
+        const numbered = trimmed.match(/^\d+[.)]\s+(.+)$/);
+
+        if (heading) {
+            if (current.lines.length > 0 || current.items.length > 0) {
+                sections.push(current);
+            }
+
+            current = { title: heading[2], lines: [], items: [] };
+            return;
+        }
+
+        if (bullet || numbered) {
+            current.items.push((bullet || numbered)[1]);
+            return;
+        }
+
+        if (trimmed) {
+            current.lines.push(trimmed.replace(/^\*\*(.+)\*\*$/, "$1"));
+        }
+    });
+
+    if (current.lines.length > 0 || current.items.length > 0) {
+        sections.push(current);
+    }
+
+    return sections.length > 0 ? sections : [{ title: "Analysis", lines: [text], items: [] }];
+}
+
+function formatObjectSections(value) {
+    return Object.entries(value)
+        .filter(([, sectionValue]) => sectionValue !== null && sectionValue !== undefined && sectionValue !== "")
+        .map(([key, sectionValue]) => {
+            if (Array.isArray(sectionValue)) {
+                return {
+                    title: titleFromKey(key),
+                    lines: [],
+                    items: sectionValue.map((item) => extractProviderText(item))
+                };
+            }
+
+            if (typeof sectionValue === "object") {
+                return {
+                    title: titleFromKey(key),
+                    lines: [JSON.stringify(sectionValue, null, 2)],
+                    items: []
+                };
+            }
+
+            return {
+                title: titleFromKey(key),
+                lines: [String(sectionValue)],
+                items: []
+            };
+        });
+}
+
+function formatVisionResponse(payload) {
+    const rawAnalysis = payload?.analysis ?? payload;
+    const parsed = tryParseJson(rawAnalysis);
+
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const providerText = extractProviderText(parsed);
+        const isFallbackJson = providerText.trim().startsWith("{");
+        return {
+            sections: isFallbackJson ? formatObjectSections(parsed) : parseMarkdownSections(providerText),
+            raw: providerText
+        };
+    }
+
+    const text = extractProviderText(parsed);
+    const nested = tryParseJson(text);
+
+    if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+        return {
+            sections: formatObjectSections(nested),
+            raw: JSON.stringify(nested, null, 2)
+        };
+    }
+
+    return {
+        sections: parseMarkdownSections(text),
+        raw: text
+    };
+}
+
+function appendTextBlock(parent, text) {
+    const paragraph = document.createElement("p");
+    paragraph.textContent = text;
+    parent.appendChild(paragraph);
+}
+
+function renderVisionResponse(payload) {
+    const formatted = formatVisionResponse(payload);
+    resultCopy.replaceChildren();
+
+    formatted.sections.forEach((section) => {
+        const sectionElement = document.createElement("section");
+        sectionElement.className = "markdown-section";
+
+        const heading = document.createElement("h3");
+        heading.textContent = section.title;
+        sectionElement.appendChild(heading);
+
+        section.lines.forEach((line) => appendTextBlock(sectionElement, line));
+
+        if (section.items.length > 0) {
+            const list = document.createElement("ul");
+            list.className = "result-list";
+            section.items.forEach((item) => {
+                const listItem = document.createElement("li");
+                listItem.textContent = item;
+                list.appendChild(listItem);
+            });
+            sectionElement.appendChild(list);
+        }
+
+        resultCopy.appendChild(sectionElement);
+    });
+}
+
 function setStatus(label, state) {
     statusPill.textContent = label;
     statusPill.classList.remove("is-loading", "is-success", "is-error");
@@ -62,8 +261,8 @@ function updateFileSummary() {
 
     dropZone.classList.add("has-file");
     fileName.textContent = file.name;
-    fileDetail.textContent = `${file.type || "Image file"} · ${formatBytes(file.size)}`;
-    fileMetric.textContent = `${file.name} · ${formatBytes(file.size)}`;
+    fileDetail.textContent = `${file.type || "Image file"} - ${formatBytes(file.size)}`;
+    fileMetric.textContent = `${file.name} - ${formatBytes(file.size)}`;
 }
 
 function updatePromptMetric() {
@@ -74,7 +273,8 @@ function updatePromptMetric() {
 function showError(message) {
     setStatus("Needs attention", "error");
     formMessage.textContent = message;
-    resultCopy.textContent = message;
+    resultCopy.replaceChildren();
+    appendTextBlock(resultCopy, message);
 }
 
 async function submitAnalysis(event) {
@@ -100,7 +300,8 @@ async function submitAnalysis(event) {
     submitButton.disabled = true;
     submitButton.textContent = "Analyzing...";
     formMessage.textContent = "Uploading image and awaiting the vision response.";
-    resultCopy.textContent = "Analysis in progress...";
+    resultCopy.replaceChildren();
+    appendTextBlock(resultCopy, "Analysis in progress...");
     setStatus("Analyzing", "loading");
 
     try {
@@ -115,7 +316,7 @@ async function submitAnalysis(event) {
             throw new Error(payload.error || `Request failed with status ${response.status}.`);
         }
 
-        resultCopy.textContent = payload.analysis || JSON.stringify(payload, null, 2);
+        renderVisionResponse(payload);
         fileMetric.textContent = payload.fileName || fileMetric.textContent;
         promptMetric.textContent = payload.prompt ? `${payload.prompt.length} prompt characters` : promptMetric.textContent;
         formMessage.textContent = "Analysis complete.";

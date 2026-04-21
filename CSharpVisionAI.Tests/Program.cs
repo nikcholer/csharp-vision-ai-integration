@@ -11,6 +11,7 @@ await tests.VisionModelClientPostsToConfiguredEndpoint();
 await tests.LiveServerAcceptsMultipartRequest();
 await tests.LiveServerServesStaticFrontend();
 tests.StaticFrontendFoundationIncludesUploadWorkflow();
+tests.StaticFrontendParsesStructuredVisionResponses();
 
 Console.WriteLine("All endpoint tests passed.");
 
@@ -179,6 +180,24 @@ internal sealed class EndpointTests
         AssertContains("error", js, "Expected the integration script to handle error states.");
         AssertContains("glass", css, "Expected the stylesheet to include refined glass panel styling.");
         AssertContains("--surface", css, "Expected the stylesheet to define a sober surface color system.");
+    }
+
+    public void StaticFrontendParsesStructuredVisionResponses()
+    {
+        var projectRoot = FindProjectRoot();
+        var stylesPath = Path.Combine(projectRoot, "CSharpVisionAI", "wwwroot", "styles.css");
+        var scriptPath = Path.Combine(projectRoot, "CSharpVisionAI", "wwwroot", "app.js");
+
+        var css = File.ReadAllText(stylesPath);
+        var js = File.ReadAllText(scriptPath);
+
+        AssertContains("formatVisionResponse", js, "Expected the frontend to normalize raw, markdown, and object analysis responses.");
+        AssertContains("renderVisionResponse", js, "Expected the frontend to render structured analysis output.");
+        AssertContains("choices", js, "Expected OpenAI-style provider responses to be recognized.");
+        AssertContains("candidates", js, "Expected Gemini-style provider responses to be recognized.");
+        AssertContains("createElement", js, "Expected response rendering to use DOM nodes rather than raw HTML injection.");
+        AssertContains("markdown-section", css, "Expected markdown-derived sections to have dedicated styling.");
+        AssertContains("result-list", css, "Expected markdown/object list content to have dedicated styling.");
     }
 
     private static string FindProjectRoot()

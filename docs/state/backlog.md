@@ -8,7 +8,7 @@
 
 ## Medium Priority Queue
 - [x] **Real API Swap:** Transition the backend `IVisionAgent` implementation from the mocked local delay to actually calling out to a Live Vision AI endpoint using the injected API keys.
-- [ ] **Response Parsing:** Gracefully parse complex markdown/object responses from the ML service in the frontend.
+- [x] **Response Parsing:** Gracefully parse complex markdown/object responses from the ML service in the frontend.
 
 ## Icebox (Human-Controlled: Agent Read-Only)
 - [ ] Explore adding conversation memory so follow up questions can be asked about an uploaded image.
