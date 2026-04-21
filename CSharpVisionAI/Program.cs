@@ -55,22 +55,47 @@ namespace CSharpVisionAI
             var imageBytes = await File.ReadAllBytesAsync(imagePath);
             var base64Image = Convert.ToBase64String(imageBytes);
 
-            var requestBody = new
+            object requestBody;
+            bool isGoogle = _endpoint.Contains("googleapis.com");
+
+            if (isGoogle)
             {
-                model = _model,
-                messages = new[]
+                // Google Gemini / Gemma Format
+                requestBody = new
                 {
-                    new
+                    contents = new[]
                     {
-                        role = "user",
-                        content = new object[]
+                        new
                         {
-                            new { type = "text", text = prompt },
-                            new { type = "image_url", image_url = new { url = $"data:image/jpeg;base64,{base64Image}" } }
+                            parts = new object[]
+                            {
+                                new { text = prompt },
+                                new { inlineData = new { mimeType = "image/jpeg", data = base64Image } }
+                            }
                         }
                     }
-                }
-            };
+                };
+            }
+            else
+            {
+                // Standard OpenAI-compatible Format
+                requestBody = new
+                {
+                    model = _model,
+                    messages = new[]
+                    {
+                        new
+                        {
+                            role = "user",
+                            content = new object[]
+                            {
+                                new { type = "text", text = prompt },
+                                new { type = "image_url", image_url = new { url = $"data:image/jpeg;base64,{base64Image}" } }
+                            }
+                        }
+                    }
+                };
+            }
 
             if (_useMockResponse)
             {
@@ -82,7 +107,15 @@ namespace CSharpVisionAI
             {
                 Content = new StringContent(JsonSerializer.Serialize(requestBody), System.Text.Encoding.UTF8, "application/json")
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+
+            if (isGoogle)
+            {
+                request.Headers.Add("x-goog-api-key", _apiKey);
+            }
+            else
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            }
 
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -182,6 +215,9 @@ namespace CSharpVisionAI
                 Args = args,
                 ContentRootPath = ResolveContentRoot()
             });
+
+            // Ensure User Secrets are loaded even if the environment is not set to 'Development'
+            builder.Configuration.AddUserSecrets<Program>(optional: true);
 
             // Keep the demo runnable without local secret setup while preserving configuration-based credentials.
             if (string.IsNullOrEmpty(builder.Configuration["AI_VISION_API_KEY"]))

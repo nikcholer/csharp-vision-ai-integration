@@ -8,12 +8,13 @@
 </head>
 <body>
     <main class="app-shell">
-        <section class="intro-panel glass-panel" aria-labelledby="app-title">
-            <p class="eyebrow">Secure multimodal analysis</p>
-            <h1 id="app-title">CSharpVisionAI</h1>
-            <p class="intro-copy">
-                Upload a reference image, add an inspection prompt, and review the structured vision response in a calm technical workspace.
-            </p>
+        <header class="app-header glass-panel" aria-labelledby="header-description">
+            <div class="header-content">
+                <p class="eyebrow">Secure multimodal analysis</p>
+                <p id="header-description" class="intro-copy">
+                    A JS & .NET demo of calling a vision model from the server and returning a text response to the browser using a .NET server app.
+                </p>
+            </div>
             <dl class="signal-grid" aria-label="Application signals">
                 <div>
                     <dt>Runtime</dt>
@@ -25,10 +26,10 @@
                 </div>
                 <div>
                     <dt>Secrets</dt>
-                    <dd>Environment scoped</dd>
+                    <dd>User Secrets / Env</dd>
                 </div>
             </dl>
-        </section>
+        </header>
 
         <section class="workspace" aria-label="Vision analysis workspace">
             <form id="analysis-form" class="composer glass-panel" aria-label="Image analysis form">

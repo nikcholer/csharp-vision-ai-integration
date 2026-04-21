@@ -53,14 +53,13 @@ input {
 .app-shell {
     position: relative;
     z-index: 1;
-    width: min(1180px, calc(100% - 32px));
+    width: min(880px, calc(100% - 32px));
     min-height: 100vh;
     margin: 0 auto;
     padding: 48px 0;
-    display: grid;
-    grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1.22fr);
+    display: flex;
+    flex-direction: column;
     gap: 22px;
-    align-items: stretch;
 }
 
 .glass-panel {
@@ -71,24 +70,17 @@ input {
     backdrop-filter: blur(20px);
 }
 
-.intro-panel {
-    min-height: 620px;
+.app-header {
     padding: 34px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: space-between;
-    overflow: hidden;
+    align-items: flex-start;
+    gap: 40px;
 }
 
-.intro-panel::after {
-    width: 100%;
-    height: 180px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    content: "";
-    background:
-        linear-gradient(135deg, rgba(52, 93, 140, 0.24), rgba(255, 255, 255, 0.36)),
-        repeating-linear-gradient(90deg, rgba(24, 33, 44, 0.10) 0 1px, transparent 1px 34px);
+.header-content {
+    flex: 1;
 }
 
 .eyebrow {
@@ -119,14 +111,15 @@ h1 {
 }
 
 .signal-grid {
-    margin: 34px 0 0;
     display: grid;
-    gap: 12px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin: 0;
 }
 
 .signal-grid div {
-    padding: 14px 0;
-    border-top: 1px solid var(--line);
+    padding: 0 0 0 20px;
+    border-left: 1px solid var(--line);
 }
 
 .signal-grid dt {
@@ -143,8 +136,8 @@ h1 {
 }
 
 .workspace {
-    display: grid;
-    grid-template-rows: 1fr auto;
+    display: flex;
+    flex-direction: column;
     gap: 22px;
 }
 
@@ -385,12 +378,22 @@ button:disabled {
     .app-shell {
         min-height: auto;
         padding: 24px 0;
-        grid-template-columns: 1fr;
     }
 
-    .intro-panel {
-        min-height: auto;
+    .app-header {
+        flex-direction: column;
         gap: 30px;
+    }
+
+    .signal-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .signal-grid div {
+        padding: 12px 0 0 0;
+        border-left: 0;
+        border-top: 1px solid var(--line);
     }
 
     .action-row,
