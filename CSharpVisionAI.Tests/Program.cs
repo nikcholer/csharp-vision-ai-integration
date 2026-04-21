@@ -97,9 +97,11 @@ internal sealed class EndpointTests
             using var client = new HttpClient();
             var html = await client.GetStringAsync($"http://127.0.0.1:{port}/index.html");
             var css = await client.GetStringAsync($"http://127.0.0.1:{port}/styles.css");
+            var js = await client.GetStringAsync($"http://127.0.0.1:{port}/app.js");
 
             AssertContains("CSharpVisionAI", html, "Expected the live server to serve index.html.");
             AssertContains("--surface", css, "Expected the live server to serve styles.css.");
+            AssertContains("/api/vision/analyze", js, "Expected the live server to serve app.js.");
         }
         finally
         {
@@ -112,17 +114,26 @@ internal sealed class EndpointTests
         var projectRoot = FindProjectRoot();
         var indexPath = Path.Combine(projectRoot, "CSharpVisionAI", "wwwroot", "index.html");
         var stylesPath = Path.Combine(projectRoot, "CSharpVisionAI", "wwwroot", "styles.css");
+        var scriptPath = Path.Combine(projectRoot, "CSharpVisionAI", "wwwroot", "app.js");
 
         AssertTrue(File.Exists(indexPath), "Expected wwwroot/index.html to exist.");
         AssertTrue(File.Exists(stylesPath), "Expected wwwroot/styles.css to exist.");
+        AssertTrue(File.Exists(scriptPath), "Expected wwwroot/app.js to exist.");
 
         var html = File.ReadAllText(indexPath);
         var css = File.ReadAllText(stylesPath);
+        var js = File.ReadAllText(scriptPath);
 
         AssertContains("type=\"file\"", html, "Expected the page to expose an image file input.");
         AssertContains("name=\"prompt\"", html, "Expected the page to expose a prompt input.");
         AssertContains("drop", html, "Expected the page copy or markup to support drag-and-drop affordance.");
         AssertContains("styles.css", html, "Expected the page to load the stylesheet.");
+        AssertContains("app.js", html, "Expected the page to load the integration script.");
+        AssertContains("FormData", js, "Expected the integration script to construct multipart form data.");
+        AssertContains("/api/vision/analyze", js, "Expected the integration script to call the vision endpoint.");
+        AssertContains("fetch", js, "Expected the integration script to submit asynchronously.");
+        AssertContains("is-loading", js, "Expected the integration script to manage loading state.");
+        AssertContains("error", js, "Expected the integration script to handle error states.");
         AssertContains("glass", css, "Expected the stylesheet to include refined glass panel styling.");
         AssertContains("--surface", css, "Expected the stylesheet to define a sober surface color system.");
     }

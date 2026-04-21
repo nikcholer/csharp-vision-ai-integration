@@ -31,11 +31,11 @@
         </section>
 
         <section class="workspace" aria-label="Vision analysis workspace">
-            <form class="composer glass-panel" aria-label="Image analysis form">
-                <label class="drop-zone" for="image-input">
+            <form id="analysis-form" class="composer glass-panel" aria-label="Image analysis form">
+                <label id="drop-zone" class="drop-zone" for="image-input">
                     <span class="drop-kicker">Drop image here</span>
-                    <span class="drop-title">Select or drag a visual asset</span>
-                    <span class="drop-note">JPG, PNG, WEBP, or GIF files can be prepared for analysis.</span>
+                    <span id="file-name" class="drop-title">Select or drag a visual asset</span>
+                    <span id="file-detail" class="drop-note">JPG, PNG, WEBP, or GIF files can be prepared for analysis.</span>
                     <input id="image-input" name="image" type="file" accept="image/*">
                 </label>
 
@@ -45,26 +45,27 @@
                 </label>
 
                 <div class="action-row">
-                    <button type="submit">Analyze image</button>
-                    <p class="form-note">The integration script will connect this form to the API in the next slice.</p>
+                    <button id="submit-button" type="submit">Analyze image</button>
+                    <p id="form-message" class="form-note" aria-live="polite">Awaiting an image and inspection prompt.</p>
                 </div>
             </form>
 
             <aside class="result-panel glass-panel" aria-label="Analysis result preview">
                 <div class="panel-heading">
                     <p class="eyebrow">Response dashboard</p>
-                    <span class="status-pill">Ready</span>
+                    <span id="status-pill" class="status-pill">Ready</span>
                 </div>
                 <div class="result-frame">
                     <p class="result-label">Analysis output</p>
-                    <p class="result-copy">Results from the vision endpoint will appear here without leaving the page.</p>
+                    <p id="result-copy" class="result-copy">Results from the vision endpoint will appear here without leaving the page.</p>
                 </div>
                 <div class="metric-row" aria-label="Result metadata">
-                    <span>File pending</span>
-                    <span>Prompt pending</span>
+                    <span id="file-metric">File pending</span>
+                    <span id="prompt-metric">Prompt pending</span>
                 </div>
             </aside>
         </section>
     </main>
+    <script src="app.js" defer></script>
 </body>
 </html>
