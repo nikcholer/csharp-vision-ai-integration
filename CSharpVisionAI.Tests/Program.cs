@@ -8,6 +8,8 @@ await tests.ValidMultipartRequestDelegatesToVisionAgent();
 await tests.MissingImageReturnsBadRequest();
 await tests.BlankPromptReturnsBadRequest();
 await tests.LiveServerAcceptsMultipartRequest();
+await tests.LiveServerServesStaticFrontend();
+tests.StaticFrontendFoundationIncludesUploadWorkflow();
 
 Console.WriteLine("All endpoint tests passed.");
 
@@ -82,6 +84,63 @@ internal sealed class EndpointTests
         {
             await app.StopAsync();
         }
+    }
+
+    public async Task LiveServerServesStaticFrontend()
+    {
+        var port = Random.Shared.Next(5200, 5299);
+        await using var app = VisionApp.Create(["--urls", $"http://127.0.0.1:{port}"]);
+        await app.StartAsync();
+
+        try
+        {
+            using var client = new HttpClient();
+            var html = await client.GetStringAsync($"http://127.0.0.1:{port}/index.html");
+            var css = await client.GetStringAsync($"http://127.0.0.1:{port}/styles.css");
+
+            AssertContains("CSharpVisionAI", html, "Expected the live server to serve index.html.");
+            AssertContains("--surface", css, "Expected the live server to serve styles.css.");
+        }
+        finally
+        {
+            await app.StopAsync();
+        }
+    }
+
+    public void StaticFrontendFoundationIncludesUploadWorkflow()
+    {
+        var projectRoot = FindProjectRoot();
+        var indexPath = Path.Combine(projectRoot, "CSharpVisionAI", "wwwroot", "index.html");
+        var stylesPath = Path.Combine(projectRoot, "CSharpVisionAI", "wwwroot", "styles.css");
+
+        AssertTrue(File.Exists(indexPath), "Expected wwwroot/index.html to exist.");
+        AssertTrue(File.Exists(stylesPath), "Expected wwwroot/styles.css to exist.");
+
+        var html = File.ReadAllText(indexPath);
+        var css = File.ReadAllText(stylesPath);
+
+        AssertContains("type=\"file\"", html, "Expected the page to expose an image file input.");
+        AssertContains("name=\"prompt\"", html, "Expected the page to expose a prompt input.");
+        AssertContains("drop", html, "Expected the page copy or markup to support drag-and-drop affordance.");
+        AssertContains("styles.css", html, "Expected the page to load the stylesheet.");
+        AssertContains("glass", css, "Expected the stylesheet to include refined glass panel styling.");
+        AssertContains("--surface", css, "Expected the stylesheet to define a sober surface color system.");
+    }
+
+    private static string FindProjectRoot()
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        while (current is not null)
+        {
+            if (File.Exists(Path.Combine(current.FullName, "docs", "planning.md")))
+            {
+                return current.FullName;
+            }
+
+            current = current.Parent;
+        }
+
+        throw new InvalidOperationException("Could not locate the repository root.");
     }
 
     private static HttpRequest CreateMultipartRequest(string? fileName, string? contentType, byte[]? imageBytes, string prompt)

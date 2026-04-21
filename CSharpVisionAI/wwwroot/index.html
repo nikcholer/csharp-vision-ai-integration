@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CSharpVisionAI</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="app-shell">
+        <section class="intro-panel glass-panel" aria-labelledby="app-title">
+            <p class="eyebrow">Secure multimodal analysis</p>
+            <h1 id="app-title">CSharpVisionAI</h1>
+            <p class="intro-copy">
+                Upload a reference image, add an inspection prompt, and review the structured vision response in a calm technical workspace.
+            </p>
+            <dl class="signal-grid" aria-label="Application signals">
+                <div>
+                    <dt>Runtime</dt>
+                    <dd>ASP.NET Core</dd>
+                </div>
+                <div>
+                    <dt>Endpoint</dt>
+                    <dd>/api/vision/analyze</dd>
+                </div>
+                <div>
+                    <dt>Secrets</dt>
+                    <dd>Environment scoped</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="workspace" aria-label="Vision analysis workspace">
+            <form class="composer glass-panel" aria-label="Image analysis form">
+                <label class="drop-zone" for="image-input">
+                    <span class="drop-kicker">Drop image here</span>
+                    <span class="drop-title">Select or drag a visual asset</span>
+                    <span class="drop-note">JPG, PNG, WEBP, or GIF files can be prepared for analysis.</span>
+                    <input id="image-input" name="image" type="file" accept="image/*">
+                </label>
+
+                <label class="prompt-field" for="prompt-input">
+                    <span>Prompt</span>
+                    <textarea id="prompt-input" name="prompt" rows="7" placeholder="Describe the contents, risks, anomalies, or visual details to inspect."></textarea>
+                </label>
+
+                <div class="action-row">
+                    <button type="submit">Analyze image</button>
+                    <p class="form-note">The integration script will connect this form to the API in the next slice.</p>
+                </div>
+            </form>
+
+            <aside class="result-panel glass-panel" aria-label="Analysis result preview">
+                <div class="panel-heading">
+                    <p class="eyebrow">Response dashboard</p>
+                    <span class="status-pill">Ready</span>
+                </div>
+                <div class="result-frame">
+                    <p class="result-label">Analysis output</p>
+                    <p class="result-copy">Results from the vision endpoint will appear here without leaving the page.</p>
+                </div>
+                <div class="metric-row" aria-label="Result metadata">
+                    <span>File pending</span>
+                    <span>Prompt pending</span>
+                </div>
+            </aside>
+        </section>
+    </main>
+</body>
+</html>

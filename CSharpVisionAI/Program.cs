@@ -168,7 +168,11 @@ namespace CSharpVisionAI
     {
         public static WebApplication Create(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+            {
+                Args = args,
+                ContentRootPath = ResolveContentRoot()
+            });
 
             // Keep the demo runnable without local secret setup while preserving environment-based credentials.
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AI_VISION_API_KEY")))
@@ -197,6 +201,28 @@ namespace CSharpVisionAI
                 });
 
             return app;
+        }
+
+        private static string ResolveContentRoot()
+        {
+            var current = new DirectoryInfo(Directory.GetCurrentDirectory());
+            while (current is not null)
+            {
+                if (File.Exists(Path.Combine(current.FullName, "CSharpVisionAI.csproj")))
+                {
+                    return current.FullName;
+                }
+
+                var nestedProject = Path.Combine(current.FullName, "CSharpVisionAI", "CSharpVisionAI.csproj");
+                if (File.Exists(nestedProject))
+                {
+                    return Path.Combine(current.FullName, "CSharpVisionAI");
+                }
+
+                current = current.Parent;
+            }
+
+            return Directory.GetCurrentDirectory();
         }
     }
 

@@ -23,13 +23,13 @@ The immediate goal is to transform the standalone Console loop into a lightweigh
 - The user can upload an image and prompt, which are successfully passed to the Minimal API.
 - The Minimal API delegates to `IVisionAgent` seamlessly.
 - The frontend receives the JSON response and displays the "simulated/mocked AI output" or the real AI output on the dashboard gracefully without reloading the page.
-- The UI design feels extremely premium (vibrant gradients, hover states, modern typography, glassmorphism hints).
+- The UI design feels extremely premium, using a vaguely corporate sober aesthetic (professional grays/blues, clean typography, refined hover states, and subtle glassmorphism).
 
 ## Manual Verification Steps
 
 1. Run `dotnet run` in the `CSharpVisionAI` folder.
 2. Open the resulting `http://localhost:<port>` url.
-3. Observe the premium aesthetic of the design.
+3. Observe the professional, corporate-sober aesthetic of the design.
 4. Upload any sample image and provide a prompt.
 5. Click Submit and verify the C# backend logs the incoming request, triggers `VisionModelClient`, and pushes the response back to the front-end dashboard visually.
 
@@ -38,6 +38,7 @@ The immediate goal is to transform the standalone Console loop into a lightweigh
 - **Backend Framework:** C# ASP.NET Core Minimal API (`Microsoft.NET.Sdk.Web`). No heavy MVC or Razor Pages.
 - **Frontend Framework:** STRICTLY Vanilla HTML, CSS, and JS (`wwwroot/index.html`, `styles.css`, `app.js`). No React, Angular, Tailwind, or Vue.
 - **Agent Flow Compatibility:** Ensure the `Program.cs` and interface dependencies (`IVisionAgent`) remain decoupled so that an orchestrating harness can execute tests seamlessly.
+- **Design Language:** Vaguely corporate sober. Avoid neon or excessively high-vibrancy palettes. Prioritize readability and professional presentation.
 
 ## Preferred Stack
 

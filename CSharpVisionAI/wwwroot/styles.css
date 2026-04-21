@@ -1,0 +1,319 @@
+:root {
+    color-scheme: light;
+    --ink: #18212c;
+    --muted: #627084;
+    --quiet: #8a95a6;
+    --line: rgba(61, 77, 98, 0.18);
+    --surface: rgba(255, 255, 255, 0.78);
+    --surface-strong: rgba(247, 250, 253, 0.94);
+    --field: #f5f7fa;
+    --blue: #345d8c;
+    --blue-deep: #243f62;
+    --steel: #d9e1ea;
+    --shadow: 0 26px 70px rgba(30, 43, 61, 0.15);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--ink);
+    font-family: "Aptos", "Segoe UI", sans-serif;
+    background:
+        linear-gradient(135deg, rgba(52, 93, 140, 0.08), transparent 34%),
+        linear-gradient(315deg, rgba(24, 33, 44, 0.08), transparent 36%),
+        #edf1f5;
+}
+
+body::before {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    content: "";
+    background-image:
+        linear-gradient(rgba(24, 33, 44, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(24, 33, 44, 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent 78%);
+}
+
+button,
+textarea,
+input {
+    font: inherit;
+}
+
+.app-shell {
+    position: relative;
+    z-index: 1;
+    width: min(1180px, calc(100% - 32px));
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 48px 0;
+    display: grid;
+    grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1.22fr);
+    gap: 22px;
+    align-items: stretch;
+}
+
+.glass-panel {
+    border: 1px solid rgba(255, 255, 255, 0.68);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+}
+
+.intro-panel {
+    min-height: 620px;
+    padding: 34px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.intro-panel::after {
+    width: 100%;
+    height: 180px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    content: "";
+    background:
+        linear-gradient(135deg, rgba(52, 93, 140, 0.24), rgba(255, 255, 255, 0.36)),
+        repeating-linear-gradient(90deg, rgba(24, 33, 44, 0.10) 0 1px, transparent 1px 34px);
+}
+
+.eyebrow {
+    margin: 0 0 18px;
+    color: var(--blue-deep);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+h1 {
+    max-width: 8ch;
+    margin: 0;
+    font-family: "Constantia", "Georgia", serif;
+    font-size: clamp(3rem, 8vw, 5.9rem);
+    line-height: 0.92;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.intro-copy {
+    max-width: 32rem;
+    margin: 28px 0 0;
+    color: var(--muted);
+    font-size: 1.04rem;
+    line-height: 1.65;
+}
+
+.signal-grid {
+    margin: 34px 0 0;
+    display: grid;
+    gap: 12px;
+}
+
+.signal-grid div {
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+}
+
+.signal-grid dt {
+    color: var(--quiet);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.signal-grid dd {
+    margin: 6px 0 0;
+    color: var(--ink);
+    font-weight: 650;
+}
+
+.workspace {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    gap: 22px;
+}
+
+.composer,
+.result-panel {
+    padding: 24px;
+}
+
+.composer {
+    display: grid;
+    gap: 18px;
+    background: var(--surface-strong);
+}
+
+.drop-zone {
+    min-height: 236px;
+    padding: 26px;
+    border: 1px dashed rgba(52, 93, 140, 0.5);
+    border-radius: 8px;
+    display: grid;
+    place-content: center;
+    gap: 10px;
+    text-align: center;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(236, 242, 248, 0.82)),
+        var(--field);
+    cursor: pointer;
+    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.drop-zone:hover,
+.drop-zone:focus-within {
+    border-color: var(--blue);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(36, 63, 98, 0.12);
+}
+
+.drop-kicker {
+    color: var(--blue-deep);
+    font-size: 0.78rem;
+    font-weight: 750;
+    text-transform: uppercase;
+}
+
+.drop-title {
+    font-family: "Constantia", "Georgia", serif;
+    font-size: clamp(1.7rem, 4vw, 2.8rem);
+    line-height: 1;
+}
+
+.drop-note,
+.form-note,
+.result-copy,
+.metric-row {
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.drop-zone input {
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.prompt-field {
+    display: grid;
+    gap: 10px;
+    color: var(--ink);
+    font-weight: 700;
+}
+
+textarea {
+    width: 100%;
+    min-height: 164px;
+    resize: vertical;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    background: #ffffff;
+    outline: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+textarea:focus {
+    border-color: rgba(52, 93, 140, 0.78);
+    box-shadow: 0 0 0 4px rgba(52, 93, 140, 0.12);
+}
+
+.action-row {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+}
+
+button {
+    min-height: 46px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 8px;
+    color: #ffffff;
+    background: linear-gradient(180deg, var(--blue), var(--blue-deep));
+    box-shadow: 0 12px 24px rgba(36, 63, 98, 0.2);
+    cursor: pointer;
+}
+
+button:hover {
+    filter: brightness(1.05);
+}
+
+.panel-heading,
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+}
+
+.status-pill {
+    padding: 7px 10px;
+    border: 1px solid rgba(52, 93, 140, 0.22);
+    border-radius: 999px;
+    color: var(--blue-deep);
+    background: rgba(231, 237, 244, 0.8);
+    font-size: 0.78rem;
+    font-weight: 750;
+}
+
+.result-frame {
+    min-height: 160px;
+    margin: 18px 0;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.74);
+}
+
+.result-label {
+    margin: 0 0 8px;
+    font-weight: 750;
+}
+
+.result-copy {
+    margin: 0;
+}
+
+@media (max-width: 860px) {
+    .app-shell {
+        min-height: auto;
+        padding: 24px 0;
+        grid-template-columns: 1fr;
+    }
+
+    .intro-panel {
+        min-height: auto;
+        gap: 30px;
+    }
+
+    .action-row,
+    .panel-heading,
+    .metric-row {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    button {
+        width: 100%;
+    }
+}
