@@ -25,6 +25,7 @@ The application uses the standard .NET configuration provider, which loads setti
 | `AI_VISION_API_KEY` | Your AI provider API Key. | `(Required for real inference)` |
 | `AI_VISION_ENDPOINT` | The REST API endpoint for the vision model. | `https://api.example.com/v1/...` |
 | `AI_VISION_MODEL` | The specific model string to use. | `vision-model-v1` |
+| `AI_VISION_USE_MOCK` | Forces deterministic mock responses for demos/tests. | `true` / `false` |
 
 ---
 

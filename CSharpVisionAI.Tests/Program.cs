@@ -1,6 +1,7 @@
 using System.Text;
 using CSharpVisionAI;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 
 var tests = new EndpointTests();
@@ -77,8 +78,17 @@ internal sealed class EndpointTests
             Environment.SetEnvironmentVariable("AI_VISION_ENDPOINT", "https://vision.example.test/v1/analyze");
             Environment.SetEnvironmentVariable("AI_VISION_MODEL", "test-vision-model");
 
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["AI_VISION_API_KEY"] = "test-live-key",
+                    ["AI_VISION_ENDPOINT"] = "https://vision.example.test/v1/analyze",
+                    ["AI_VISION_MODEL"] = "test-vision-model"
+                })
+                .Build();
+
             var handler = new CapturingHttpHandler("""{"analysis":"live response"}""");
-            var client = new VisionModelClient(new HttpClient(handler));
+            var client = new VisionModelClient(new HttpClient(handler), configuration);
 
             var analysis = await client.AnalyzeImageAsync(imagePath, "Identify the object");
 
@@ -107,12 +117,16 @@ internal sealed class EndpointTests
 
     public async Task LiveServerAcceptsMultipartRequest()
     {
+        var previousUseMock = Environment.GetEnvironmentVariable("AI_VISION_USE_MOCK");
         var port = Random.Shared.Next(5100, 5199);
-        await using var app = VisionApp.Create(["--urls", $"http://127.0.0.1:{port}"]);
-        await app.StartAsync();
 
         try
         {
+            Environment.SetEnvironmentVariable("AI_VISION_USE_MOCK", "true");
+
+            await using var app = VisionApp.Create(["--urls", $"http://127.0.0.1:{port}"]);
+            await app.StartAsync();
+
             using var client = new HttpClient();
             using var form = new MultipartFormDataContent();
             form.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "image", "sample.jpg");
@@ -123,10 +137,12 @@ internal sealed class EndpointTests
 
             AssertEqual(StatusCodes.Status200OK, (int)response.StatusCode, "Expected the live endpoint to accept multipart input.");
             AssertContains("SUCCESS", json, "Expected the live endpoint to return the mocked analysis.");
+
+            await app.StopAsync();
         }
         finally
         {
-            await app.StopAsync();
+            Environment.SetEnvironmentVariable("AI_VISION_USE_MOCK", previousUseMock);
         }
     }
 

@@ -41,7 +41,8 @@ namespace CSharpVisionAI
 
             _model = configuration["AI_VISION_MODEL"] ?? "vision-model-v1";
 
-            _useMockResponse = _endpoint.Contains("example-ai-provider.com")
+            _useMockResponse = string.Equals(configuration["AI_VISION_USE_MOCK"], "true", StringComparison.OrdinalIgnoreCase)
+                || _endpoint.Contains("example-ai-provider.com")
                 || string.Equals(_apiKey, "dummy_key_for_demo_build", StringComparison.Ordinal);
         }
 
