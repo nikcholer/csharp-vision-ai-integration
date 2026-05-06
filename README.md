@@ -75,3 +75,7 @@ public interface IVisionAgent
 ```
 
 The application leverages standard `System.Net.Http` along with `System.Text.Json` to communicate with standard AI Model REST APIs, ensuring zero heavy vendor-locked SDKs unless absolutely necessary for your business logic domain.
+
+## Future Production Ideas
+
+See [`docs/state/backlog.md`](docs/state/backlog.md) for icebox notes on evolving the synchronous demo into a queued, observable AI job workflow with status tracking.
