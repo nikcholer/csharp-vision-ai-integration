@@ -1,8 +1,16 @@
 # Secure AI Vision Integration (C#)
 
-This repository demonstrates the secure integration of a multimodal AI vision model (e.g., Gemini 1.5 Pro, GPT-4o) into a C# application. It is specifically designed with architectural best practices that allow it to be easily securely plugged into an autonomous coding agent harness (like `loop-design-build`) or standard CI/CD pipeline.
+This repository demonstrates secure multimodal AI vision integration from C#. It is a small portfolio slice for teams that want to add document/image interpretation to an agentic workflow without hardcoding secrets, binding business logic to one provider, or making live model calls impossible to test.
+
+The sample is designed to plug into an autonomous coding harness such as [`loop-design-build`](https://github.com/nikcholer/loop-design-build), a standard CI/CD pipeline, or a conventional .NET application boundary.
 
 ![Application Dashboard Screenshot](screenshot.png)
+
+## Portfolio Narrative
+
+The business value is not the vision call by itself. The project shows the surrounding engineering discipline needed for corporate use: environment-based secrets, mockable AI boundaries, deterministic test paths, and a clean interface that lets orchestration code call vision capabilities without owning credentials or provider-specific request details.
+
+It illustrates a useful enterprise pattern: let the model interpret visual input, but keep configuration, invocation policy, error handling, and downstream decisions in ordinary C# code.
 
 ## 🎯 Key Objectives
 
